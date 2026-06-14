@@ -1,36 +1,36 @@
-local _v1 = game:GetService("ProximityPromptService")
-local _v2 = game:GetService("Players").LocalPlayer
+local players = game:GetService("Players")
+local localPlayer = players.LocalPlayer
 
-local function _f1()
-    local _c = _v2.Character
-    if not _c or not _c:FindFirstChild("HumanoidRootPart") then return end
+local function fireNearestPrompt()
+    local character = localPlayer.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
     
-    local _p = _c.HumanoidRootPart.Position
-    local _n = nil
-    local _m = math.huge
+    local rootPart = character.HumanoidRootPart
     
-    -- البحث عن أقرب زر يظهر للاعب
-    for _, _prompt in ipairs(workspace:GetDescendants()) do
-        if _prompt:IsA("ProximityPrompt") and _prompt.Enabled then
-            local _parent = _prompt.Parent
-            if _parent and _parent:IsA("BasePart") then
-                local _dist = (_parent.Position - _p).Magnitude
-                -- التأكد من المسافة ومجال الرؤية للزر
-                if _dist < _m and _dist <= _prompt.MaxActivationDistance then
-                    _m = _dist
-                    _n = _prompt
+    -- البحث عن أقرب زر تفاعل متاح حولك
+    for _, prompt in ipairs(workspace:GetDescendants()) do
+        if prompt:IsA("ProximityPrompt") and prompt.Enabled then
+            local parentPart = prompt.Parent
+            if parentPart and parentPart:IsA("BasePart") then
+                local distance = (parentPart.Position - rootPart.Position).Magnitude
+                
+                -- إذا كنت قريب كفاية من الزر
+                if distance <= prompt.MaxActivationDistance then
+                    -- تفعيل الزر فوراً وتخطي الـ 3 ثواني كاملة
+                    if fireproximityprompt then
+                        fireproximityprompt(prompt)
+                    else
+                        -- طريقة احتياطية سريعة جداً إذا كان المفسر لا يدعم الأمر المباشر
+                        prompt:InputHoldBegin()
+                        task.wait(0.05) -- جزء بسيط جداً من الثانية لتسجيل الضغطة
+                        prompt:InputHoldEnd()
+                    end
+                    break
                 end
             end
         end
     end
-    
-    -- تشغيل محاكاة الضغط لمدة 3 ثواني
-    if _n then
-        _n:InputHoldBegin()
-        task.wait(3) -- مدة التعليق المطلوبة (3 ثواني)
-        _n:InputHoldEnd()
-    end
 end
 
--- لتشغيل الأمر تلقائياً فوراً:
-_f1()
+-- تشغيل الأمر فوراً عند استدعاء السكربت
+fireNearestPrompt()
